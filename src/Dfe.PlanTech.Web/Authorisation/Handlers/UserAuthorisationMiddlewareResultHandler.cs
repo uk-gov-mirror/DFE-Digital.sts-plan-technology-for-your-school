@@ -1,4 +1,5 @@
 using Dfe.PlanTech.Core.Constants;
+using Dfe.PlanTech.Infrastructure.SignIn.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 
@@ -24,6 +25,14 @@ public class UserAuthorisationMiddlewareResultHandler : IAuthorizationMiddleware
                 context.Response.Redirect(redirectUrl);
                 return;
             }
+        }
+
+        if (
+            context.Items.TryGetValue(UserAuthorisationResult.HttpContextKey, out var result)
+            && result is UserAuthorisationResult { WasRedirected: true }
+        )
+        {
+            return; // Response already written; don't call next()
         }
 
         await defaultHandler.HandleAsync(next, context, policy, authorizeResult);

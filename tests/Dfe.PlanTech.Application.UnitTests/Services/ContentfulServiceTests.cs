@@ -92,12 +92,12 @@ public class ContentfulServiceTests
         const string id = "N1";
         var expected = new NavigationLinkEntry { Sys = new SystemDetails(id) };
 
-        contentfulWorkflow.GetEntryById<NavigationLinkEntry>(id).Returns(expected);
+        contentfulWorkflow.GetEntryByIdAsync<NavigationLinkEntry>(id).Returns(expected);
 
         var result = await contentfulService.GetLinkByIdAsync(id);
 
         Assert.Same(expected, result);
-        await contentfulWorkflow.Received(1).GetEntryById<NavigationLinkEntry>(id);
+        await contentfulWorkflow.Received(1).GetEntryByIdAsync<NavigationLinkEntry>(id);
     }
 
     [Fact]
@@ -107,12 +107,12 @@ public class ContentfulServiceTests
         const string id = "N1";
         var expected = new List<NavigationLinkEntry> { new() { Sys = new SystemDetails(id) } };
 
-        contentfulWorkflow.GetEntries<NavigationLinkEntry>().Returns(expected);
+        contentfulWorkflow.GetEntriesAsync<NavigationLinkEntry>().Returns(expected);
 
         var result = await contentfulService.GetNavigationLinksAsync();
 
         Assert.Same(expected, result);
-        await contentfulWorkflow.Received(1).GetEntries<NavigationLinkEntry>();
+        await contentfulWorkflow.Received(1).GetEntriesAsync<NavigationLinkEntry>();
     }
 
     [Fact]
@@ -122,12 +122,12 @@ public class ContentfulServiceTests
         const string id = "M1";
         var expected = new List<MicrocopyEntry> { new() { Sys = new SystemDetails(id) } };
 
-        contentfulWorkflow.GetEntries<MicrocopyEntry>().Returns(expected);
+        contentfulWorkflow.GetEntriesAsync<MicrocopyEntry>().Returns(expected);
 
         var result = await contentfulService.GetMicrocopyEntriesAsync();
 
         Assert.Same(expected, result);
-        await contentfulWorkflow.Received(1).GetEntries<MicrocopyEntry>();
+        await contentfulWorkflow.Received(1).GetEntriesAsync<MicrocopyEntry>();
     }
 
     [Fact]
@@ -137,12 +137,12 @@ public class ContentfulServiceTests
         const string id = "P1";
         var expected = new PageEntry { Sys = new SystemDetails(id) };
 
-        contentfulWorkflow.GetEntryById<PageEntry>(id).Returns(expected);
+        contentfulWorkflow.GetEntryByIdAsync<PageEntry>(id).Returns(expected);
 
         var result = await contentfulService.GetPageByIdAsync(id);
 
         Assert.Same(expected, result);
-        await contentfulWorkflow.Received(1).GetEntryById<PageEntry>(id);
+        await contentfulWorkflow.Received(1).GetEntryByIdAsync<PageEntry>(id);
     }
 
     [Fact]
@@ -167,12 +167,12 @@ public class ContentfulServiceTests
         const string id = "Q1";
         var expected = new QuestionnaireQuestionEntry { Sys = new SystemDetails(id) };
 
-        contentfulWorkflow.GetEntryById<QuestionnaireQuestionEntry>(id).Returns(expected);
+        contentfulWorkflow.GetEntryByIdAsync<QuestionnaireQuestionEntry>(id).Returns(expected);
 
         var result = await contentfulService.GetQuestionByIdAsync(id);
 
         Assert.Same(expected, result);
-        await contentfulWorkflow.Received(1).GetEntryById<QuestionnaireQuestionEntry>(id);
+        await contentfulWorkflow.Received(1).GetEntryByIdAsync<QuestionnaireQuestionEntry>(id);
     }
 
     [Theory]

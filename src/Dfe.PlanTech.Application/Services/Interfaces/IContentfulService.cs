@@ -17,5 +17,6 @@ public interface IContentfulService
     Task<QuestionnaireQuestionEntry> GetQuestionByIdAsync(string questionId);
     Task<int> GetRecommendationChunkCountAsync(int page);
     Task<IEnumerable<RecommendationChunkEntry>> GetPaginatedRecommendationEntriesAsync(int page);
+    Task<string?> GetRedirectedSlugFromRequestedSlugAsync(string slug);
     Task<ComponentTextBodyEntry> GetTextBodyByIdAsync(string id);
 }

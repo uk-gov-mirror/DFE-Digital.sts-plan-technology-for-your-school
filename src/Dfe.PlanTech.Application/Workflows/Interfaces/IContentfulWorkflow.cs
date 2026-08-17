@@ -11,10 +11,10 @@ public interface IContentfulWorkflow
 
     Task<string?> GetCategoryHeaderTextBySlugAsync(string slug);
 
-    Task<List<TEntry>> GetEntries<TEntry>()
+    Task<List<TEntry>> GetEntriesAsync<TEntry>()
         where TEntry : ContentfulEntry;
 
-    Task<TEntry> GetEntryById<TEntry>(string entryId)
+    Task<TEntry> GetEntryByIdAsync<TEntry>(string entryId)
         where TEntry : ContentfulEntry;
 
     Task<PageEntry> GetPageBySlugAsync(string slug);
@@ -22,6 +22,8 @@ public interface IContentfulWorkflow
     Task<IEnumerable<RecommendationChunkEntry>> GetPaginatedRecommendationEntriesAsync(int page);
 
     Task<int> GetRecommendationChunkCountAsync(int page);
+
+    Task<string?> GetRedirectedSlugFromRequestedSlugAsync(string slug);
 
     Task<QuestionnaireSectionEntry> GetSectionBySlugAsync(
         string sectionSlug,

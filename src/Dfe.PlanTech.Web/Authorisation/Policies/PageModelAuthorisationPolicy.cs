@@ -39,7 +39,7 @@ public class PageModelAuthorisationPolicy(ILogger<PageModelAuthorisationPolicy> 
         var userAuthorisationResult = await GetUserAuthorisationResult(httpContext);
         httpContext.Items.Add(UserAuthorisationResult.HttpContextKey, userAuthorisationResult);
 
-        if (userAuthorisationResult.AuthenticationMatches)
+        if (userAuthorisationResult.AuthenticationMatches || userAuthorisationResult.WasRedirected)
         {
             context.Succeed(requirement);
 
@@ -98,12 +98,20 @@ public class PageModelAuthorisationPolicy(ILogger<PageModelAuthorisationPolicy> 
         }
 
         string slug = GetSlugFromRoute(httpContext);
+        var wasRedirected = false;
+
         try
         {
             var page = await GetPageForSlug(httpContext, slug);
+            if (page is null)
+            {
+                wasRedirected = true;
+            }
+
             return new UserAuthorisationResult(
-                PageRequiresAuthorisation: page.RequiresAuthorisation,
-                userAuthorisationStatus
+                PageRequiresAuthorisation: page?.RequiresAuthorisation ?? false,
+                UserAuthorisationStatus: userAuthorisationStatus,
+                wasRedirected
             );
         }
         catch (ContentfulDataUnavailableException e)
@@ -116,7 +124,8 @@ public class PageModelAuthorisationPolicy(ILogger<PageModelAuthorisationPolicy> 
             );
             return new UserAuthorisationResult(
                 PageRequiresAuthorisation: false,
-                userAuthorisationStatus
+                userAuthorisationStatus,
+                wasRedirected
             );
         }
         catch (Exception e)
@@ -129,7 +138,8 @@ public class PageModelAuthorisationPolicy(ILogger<PageModelAuthorisationPolicy> 
             );
             return new UserAuthorisationResult(
                 PageRequiresAuthorisation: false,
-                userAuthorisationStatus
+                userAuthorisationStatus,
+                wasRedirected
             );
         }
     }
@@ -141,10 +151,19 @@ public class PageModelAuthorisationPolicy(ILogger<PageModelAuthorisationPolicy> 
     /// The page ias added to the HttpContext for use in the <see cref="PageModelBinder"/>,
     /// to prevent the page being loaded multiple times for a single request
     /// </remarks>
-    private static async Task<PageEntry> GetPageForSlug(HttpContext httpContext, string slug)
+    private static async Task<PageEntry?> GetPageForSlug(HttpContext httpContext, string slug)
     {
         using var scope = httpContext.RequestServices.CreateAsyncScope();
         var contentfulService = scope.ServiceProvider.GetRequiredService<IContentfulService>();
+
+        var newSlug = await contentfulService.GetRedirectedSlugFromRequestedSlugAsync(slug);
+        if (newSlug is not null)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status301MovedPermanently;
+            httpContext.Response.Headers.Location = newSlug;
+            return null;
+        }
+
         var page = await contentfulService.GetPageBySlugAsync(slug);
         httpContext.Items.Add(nameof(PageEntry), page);
 

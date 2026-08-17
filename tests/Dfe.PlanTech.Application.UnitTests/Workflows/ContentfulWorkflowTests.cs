@@ -42,7 +42,7 @@ public class ContentfulWorkflowTests
         var entry = new PageEntry { Sys = new SystemDetails(id) };
         _repo.GetEntryByIdAsync<PageEntry>("p1").Returns(entry);
 
-        var result = await sut.GetEntryById<PageEntry>("p1");
+        var result = await sut.GetEntryByIdAsync<PageEntry>("p1");
 
         Assert.Same(entry, result);
         await _repo.Received(1).GetEntryByIdAsync<PageEntry>("p1");
@@ -55,7 +55,7 @@ public class ContentfulWorkflowTests
         _repo.GetEntryByIdAsync<PageEntry>("missing").Returns((PageEntry?)null);
 
         var ex = await Assert.ThrowsAsync<ContentfulDataUnavailableException>(() =>
-            sut.GetEntryById<PageEntry>("missing")
+            sut.GetEntryByIdAsync<PageEntry>("missing")
         );
 
         Assert.Contains("missing", ex.Message);
@@ -71,7 +71,7 @@ public class ContentfulWorkflowTests
             .Returns<Task<PageEntry?>>(_ => throw new InvalidOperationException("boom"));
 
         var ex = await Assert.ThrowsAsync<ContentfulDataUnavailableException>(() =>
-            sut.GetEntryById<PageEntry>("x")
+            sut.GetEntryByIdAsync<PageEntry>("x")
         );
 
         Assert.Contains("x", ex.Message);
@@ -86,7 +86,7 @@ public class ContentfulWorkflowTests
         var list = new List<NavigationLinkEntry> { new() { Sys = new SystemDetails("N1") } };
         _repo.GetEntriesAsync<NavigationLinkEntry>().Returns(list);
 
-        var result = await sut.GetEntries<NavigationLinkEntry>();
+        var result = await sut.GetEntriesAsync<NavigationLinkEntry>();
 
         Assert.Equal(list, result);
         await _repo.Received(1).GetEntriesAsync<NavigationLinkEntry>();
@@ -99,7 +99,7 @@ public class ContentfulWorkflowTests
         _repo.GetEntriesAsync<NavigationLinkEntry>(Arg.Any<GetEntriesOptions>()).Returns([]);
 
         await Assert.ThrowsAsync<ContentfulDataUnavailableException>(() =>
-            sut.GetEntries<NavigationLinkEntry>()
+            sut.GetEntriesAsync<NavigationLinkEntry>()
         );
         _logger.ReceivedWithAnyArgs(1).LogError(default, default!, "Error");
     }
@@ -113,7 +113,7 @@ public class ContentfulWorkflowTests
             .Returns<Task<IEnumerable<NavigationLinkEntry>>>(_ => throw new Exception("boom"));
 
         await Assert.ThrowsAsync<ContentfulDataUnavailableException>(() =>
-            sut.GetEntries<NavigationLinkEntry>()
+            sut.GetEntriesAsync<NavigationLinkEntry>()
         );
         _logger.ReceivedWithAnyArgs(1).LogError(default, default!, "Error");
     }

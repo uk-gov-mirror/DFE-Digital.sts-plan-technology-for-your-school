@@ -24,7 +24,7 @@ public class ContentfulWorkflow(
     private readonly GetPageFromContentfulOptions _getPageOptions =
         getPageOptions ?? throw new ArgumentNullException(nameof(getPageOptions));
 
-    public async Task<TEntry> GetEntryById<TEntry>(string entryId)
+    public async Task<TEntry> GetEntryByIdAsync<TEntry>(string entryId)
         where TEntry : ContentfulEntry
     {
         try
@@ -47,7 +47,7 @@ public class ContentfulWorkflow(
         }
     }
 
-    public async Task<List<TEntry>> GetEntries<TEntry>()
+    public async Task<List<TEntry>> GetEntriesAsync<TEntry>()
         where TEntry : ContentfulEntry
     {
         try
@@ -96,9 +96,8 @@ public class ContentfulWorkflow(
         try
         {
             var options = new GetEntriesOptions(include: 2);
-            var categories = await _contentfulRepository.GetEntriesAsync<QuestionnaireCategoryEntry>(
-                options
-            );
+            var categories =
+                await _contentfulRepository.GetEntriesAsync<QuestionnaireCategoryEntry>(options);
             return categories;
         }
         catch (Exception ex)
@@ -175,8 +174,7 @@ public class ContentfulWorkflow(
     public async Task<PageEntry> GetPageBySlugAsync(string slug)
     {
         var query = new ContentfulQuerySingleValue { Field = "fields.slug", Value = slug };
-
-        GetEntriesOptions options = PageIncludeLevelConstants.IncludeLevelOverrides.TryGetValue(
+        var options = PageIncludeLevelConstants.IncludeLevelOverrides.TryGetValue(
             slug,
             out int includeLevelOverride
         )
@@ -187,6 +185,11 @@ public class ContentfulWorkflow(
         {
             var pages = await _contentfulRepository.GetEntriesAsync<PageEntry>(options);
             var page = pages.FirstOrDefault();
+            if (page is null)
+            {
+                var redirects = _contentfulRepository.GetEntriesAsync<RedirectEntry>(options);
+            }
+
             if (page is null)
             {
                 throw new ContentfulDataUnavailableException(
@@ -205,17 +208,27 @@ public class ContentfulWorkflow(
         }
     }
 
-    public async Task<int> GetRecommendationChunkCountAsync(int page)
-    {
-        return await _contentfulRepository.GetEntriesCountAsync<RecommendationChunkEntry>();
-    }
-
     public Task<IEnumerable<RecommendationChunkEntry>> GetPaginatedRecommendationEntriesAsync(
         int page
     )
     {
         var options = new GetEntriesOptions(include: 3) { Page = page };
         return _contentfulRepository.GetPaginatedEntriesAsync<RecommendationChunkEntry>(options);
+    }
+
+    public async Task<int> GetRecommendationChunkCountAsync(int page)
+    {
+        return await _contentfulRepository.GetEntriesCountAsync<RecommendationChunkEntry>();
+    }
+
+    public async Task<string?> GetRedirectedSlugFromRequestedSlugAsync(string slug)
+    {
+        var redirects = await _contentfulRepository.GetEntriesAsync<RedirectEntry>();
+        var redirect = redirects.FirstOrDefault(r =>
+            r.RedirectFromList.Any(rfl => rfl.Contains(slug, StringComparison.OrdinalIgnoreCase))
+        );
+
+        return redirect?.RedirectTo;
     }
 
     public async Task<QuestionnaireSectionEntry> GetSectionBySlugAsync(
